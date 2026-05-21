@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* ─────────────────────────────────────────────────────────
+   다람쥐 택시 디자인 토큰 (주민용 프로토타입에서 그대로 계승)
+   ───────────────────────────────────────────────────────── */
+@theme {
+  --color-primary: #e8960a;
+  --color-primary-light: #fef3dc;
+  --color-primary-dark: #b87208;
+  --color-primary-darker: #7a4c04;
+
+  --color-bg: #f4f2ed;
+  --color-card: #ffffff;
+  --color-ink: #111008;
+  --color-ink-muted: #666666;
+  --color-ink-hint: #aaaaaa;
+
+  --color-good: #1e8a56;
+  --color-good-light: #ddf4ea;
+  --color-good-dark: #0f5a34;
+  --color-bad: #cc3030;
+  --color-bad-light: #fdeaea;
+  --color-info: #1a6ec4;
+  --color-info-light: #deedfb;
+  --color-accent: #6a4e9a;
+  --color-accent-light: #ede6f8;
+
+  --radius-card-sm: 14px;
+  --radius-card: 20px;
+  --radius-card-lg: 26px;
+
+  --font-sans: "Noto Sans KR", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 데스크탑에서 모바일 폰 프레임을 가운데 정렬해 보여주기 위한 셸 */
+.phone-shell {
+  width: 100%;
+  max-width: 420px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--color-bg);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 480px) {
+  body {
+    background: #232018;
+  }
+  .phone-shell {
+    min-height: calc(100dvh - 48px);
+    margin: 24px auto;
+    border-radius: 36px;
+    overflow: hidden;
+    box-shadow: 0 0 0 8px #111008, 0 30px 80px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* 스크롤바 숨김 (고령자 UI: 시각적 노이즈 최소화) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.animate-sheet-up {
+  animation: sheet-up 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
