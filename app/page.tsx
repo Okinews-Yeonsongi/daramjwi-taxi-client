@@ -1,43 +1,92 @@
-import Link from "next/link";
-import { Squirrel, UserCog, Users } from "lucide-react";
+"use client";
 
-// MVP 데모용 역할 진입 화면. 실제 운영에서는 Supabase Auth 로그인 후
-// app_user.role 에 따라 자동 리다이렉트합니다 (개선 제안 참고).
-export default function RolePicker() {
+import { useEffect, useState } from "react";
+import { setToken, authMe } from "@/lib/api";
+import { getSupabase } from "@/lib/supabase";
+import { ToastProvider } from "@/components/Toast";
+import LoginScreen from "@/components/LoginScreen";
+import AdminShell from "@/components/admin/AdminShell";
+
+export default function Page() {
+  const [splashDone, setSplashDone] = useState(false);
+  const [restored, setRestored] = useState(false); // 세션 복원 시도 완료 여부
+  const [tok, setTok] = useState<string | null>(null);
+  const [adminName, setAdminName] = useState("기사님");
+
+  /* 스플래시(최소 1.8초) + 기존 세션 복원 시도 */
+  useEffect(() => {
+    let alive = true;
+    const t = setTimeout(() => alive && setSplashDone(true), 1800);
+
+    (async () => {
+      try {
+        const sb = getSupabase();
+        if (sb) {
+          const { data } = await sb.auth.getSession();
+          const at = data.session?.access_token;
+          if (at) {
+            setToken(at);
+            sb.realtime.setAuth(at);
+            const me = await authMe();
+            if (me.profile?.role === "admin") {
+              if (alive) {
+                setTok(at);
+                setAdminName(me.profile.name ?? "기사님");
+              }
+            } else {
+              // 기사님 권한이 아니면 복원하지 않음
+              setToken(null);
+              await sb.auth.signOut();
+            }
+          }
+        }
+      } catch {
+        /* 복원 실패 → 로그인 화면으로 */
+      } finally {
+        if (alive) setRestored(true);
+      }
+    })();
+
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, []);
+
+  function handleLoggedIn(token: string, name: string) {
+    // api 토큰/실시간 setAuth 는 LoginScreen 에서 이미 처리됨
+    setTok(token);
+    setAdminName(name);
+  }
+
+  async function handleLogout() {
+    setToken(null);
+    try {
+      await getSupabase()?.auth.signOut();
+    } catch {
+      /* 무시 */
+    }
+    setTok(null);
+    setAdminName("기사님");
+  }
+
+  const booting = !(splashDone && restored);
+
   return (
-    <main className="phone-shell no-scrollbar overflow-y-auto">
-      <div className="bg-primary px-6 pb-9 pt-14 text-center">
-        <Squirrel className="mx-auto text-white" size={72} strokeWidth={1.6} />
-        <h1 className="mt-3 text-3xl font-black text-white">다람쥐 택시</h1>
-        <p className="mt-2 font-semibold text-white/85">청산면 백운리 이동 도우미</p>
+    <ToastProvider>
+      <div className="phone-shell">
+        <div className="notch" />
+        {booting ? (
+          <div className="splash">
+            <div className="splash-icon">🐿️</div>
+            <div className="splash-title">다람쥐택시</div>
+          </div>
+        ) : tok ? (
+          <AdminShell token={tok} adminName={adminName} onLogout={handleLogout} />
+        ) : (
+          <LoginScreen onLoggedIn={handleLoggedIn} />
+        )}
       </div>
-      <div className="flex flex-col gap-3 p-5">
-        <p className="text-sm font-bold text-ink-muted">어떤 화면으로 들어갈까요?</p>
-        <Link
-          href="/admin"
-          className="flex items-center gap-4 rounded-[20px] border border-black/10 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.07)] active:scale-[0.98]"
-        >
-          <span className="flex size-16 items-center justify-center rounded-[18px] bg-primary-light">
-            <UserCog className="text-primary-dark" size={32} />
-          </span>
-          <span>
-            <span className="block text-xl font-extrabold text-ink">이장님 · 관리자</span>
-            <span className="mt-1 block text-sm text-ink-muted">예약 접수·확정·주민 관리</span>
-          </span>
-        </Link>
-        <Link
-          href="/resident"
-          className="flex items-center gap-4 rounded-[20px] border border-black/10 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.07)] active:scale-[0.98]"
-        >
-          <span className="flex size-16 items-center justify-center rounded-[18px] bg-info-light">
-            <Users className="text-info" size={32} />
-          </span>
-          <span>
-            <span className="block text-xl font-extrabold text-ink">주민 · 가족</span>
-            <span className="mt-1 block text-sm text-ink-muted">탑승 신청·내 예약 확인</span>
-          </span>
-        </Link>
-      </div>
-    </main>
+    </ToastProvider>
   );
 }

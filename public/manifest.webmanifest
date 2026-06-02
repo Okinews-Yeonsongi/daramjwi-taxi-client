@@ -1,32 +1,14 @@
 {
-  "name": "다람쥐 택시 예약 관리",
-  "short_name": "다람쥐 택시",
-  "description": "우리 마을 이동 도우미 — 다람쥐 택시 예약 관리",
-  "lang": "ko",
+  "name": "다람쥐 택시 — 기사님",
+  "short_name": "다람쥐 기사님",
+  "description": "청산면 마을 공유택시 관리자 화면",
   "start_url": "/",
-  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#F4F2ED",
-  "theme_color": "#E8960A",
+  "background_color": "#f5f5f0",
+  "theme_color": "#f5a623",
   "icons": [
-    {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
