@@ -422,7 +422,6 @@ function MergeSheet({
 
   if (!open) return null;
 
-  const names = items.map((r) => r.resident.name ?? "—").join(", ");
   function changeHour(d: number) {
     setHour((h) => { let n = h + d; if (n < 9) n = 18; if (n > 18) n = 9; return n; });
   }
@@ -433,14 +432,18 @@ function MergeSheet({
   return (
     <Sheet open={open} onClose={busy ? () => {} : onClose}>
       <div className="mtit">예약 합치기</div>
-      <div className="msub2">{items.length}건을 합칩니다: {names}</div>
-      <div>
+      <div className="msub2">{items.length}건을 한 차로 합쳐요</div>
+      <div className="merge-list">
         {items.map((r) => (
-          <div
-            key={r.id}
-            style={{ fontSize: 13, padding: "6px 0", borderBottom: "1px solid var(--border)", color: "var(--text-muted)" }}
-          >
-            {r.resident.name ?? "—"} · {timeLabelOf(r)} · {r.departure?.name}→{r.arrival?.name} · {r.persons}명
+          <div key={r.id} className="merge-item">
+            <div className="merge-item-top">
+              <span className="merge-name">{r.resident.name ?? "—"}</span>
+              <span className="merge-persons">{r.persons}명</span>
+            </div>
+            <div className="merge-route">
+              {r.departure?.name ?? "?"} <span className="merge-arrow">→</span> {r.arrival?.name ?? "?"}
+            </div>
+            <div className="merge-time">🕐 {timeLabelOf(r)}</div>
           </div>
         ))}
       </div>

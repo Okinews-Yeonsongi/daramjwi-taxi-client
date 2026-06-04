@@ -12,8 +12,10 @@ import type {
   DevLoginResult,
   LocationCategory,
   Location,
+  MyReservation,
   TimeSlot,
   TodayRun,
+  VillageStats,
 } from "@/lib/types";
 
 const BASE = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/$/, "");
@@ -168,4 +170,37 @@ export function getSeats(date: string, hour: number, origin: LocationCategory) {
   return call<{ date: string; hour: number; origin: LocationCategory; remaining: number }>(
     `/api/availability/seats?date=${date}&hour=${hour}&origin=${origin}`,
   );
+}
+
+/* ───────── 주민(시민) ───────── */
+
+/** 내 예약 목록 (오늘 이후, 취소 제외) */
+export function getMyReservations() {
+  return call<{ reservations: MyReservation[] }>("/api/reservations/me");
+}
+
+/** 본인 예약 생성 (대기 상태). 로그인 사용자 기준. 차량 자동 배정. */
+export function createMyReservation(body: {
+  date: string;
+  hour: number;
+  departure_id: number;
+  arrival_id: number;
+  persons: number;
+}) {
+  return call<{ reservation: unknown }>("/api/reservations", {
+    method: "POST",
+    body,
+  });
+}
+
+/** 본인 예약 취소 (운행 시작 전까지) */
+export function cancelMyReservation(id: number) {
+  return call<{ reservation: unknown }>(`/api/reservations/${id}/cancel`, {
+    method: "PATCH",
+  });
+}
+
+/** 마을 현황 (운행 한도/탑승자/평균) */
+export function getVillageStats() {
+  return call<VillageStats>("/api/stats/village");
 }

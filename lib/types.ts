@@ -131,6 +131,41 @@ export interface AvailabilityResult {
   slots: AvailabilitySlot[];
 }
 
+/* ───────── 주민(시민) 내 예약 ───────── */
+
+export interface MyReservation {
+  id: number;
+  reservation_date: string;
+  hour: number;
+  departure_minute: number;
+  time_label: string | null;
+  persons: number;
+  status: ReservationStatus;
+  effective_status: ReservationStatus; // 지난 슬롯 → "completed"
+  departure: Pick<Location, "id" | "name" | "emoji" | "category"> | null;
+  arrival: Pick<Location, "id" | "name" | "emoji" | "category"> | null;
+  vehicle_code: VehicleCode | null;
+  confirmed_at: string | null;
+  cancelled_at: string | null;
+  cancel_reason: string | null;
+  created_at: string;
+}
+
+/* ───────── 마을 현황 (주민 통계) ───────── */
+
+export interface VillageStats {
+  date: string;
+  fare: number;
+  daily: { used: number; limit: number; remaining: number };
+  monthly: {
+    used: number;
+    limit: number;
+    remaining: number;
+    passengers: number;
+    avg_passengers_per_run: number;
+  };
+}
+
 /* ───────── 공통 에러 ───────── */
 
 export interface ApiError {

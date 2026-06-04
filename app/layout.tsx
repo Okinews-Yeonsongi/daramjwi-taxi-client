@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./citizen.css";
 
 export const metadata: Metadata = {
-  title: "🐿️ 다람쥐 택시 — 기사님",
-  description: "청산면 마을 공유택시 기사님(관리자) 화면",
+  title: "🐿️ 다람쥐 택시",
+  description: "청산면 마을 공유택시 — 주민·기사님",
   manifest: "/manifest.webmanifest",
 };
 

@@ -4,16 +4,20 @@ import { useEffect, useState } from "react";
 import { setToken, authMe } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
 import { ToastProvider } from "@/components/Toast";
-import LoginScreen from "@/components/LoginScreen";
+import RoleLanding from "@/components/RoleLanding";
 import AdminShell from "@/components/admin/AdminShell";
+import CitizenShell from "@/components/citizen/CitizenShell";
+
+type Role = "admin" | "resident";
 
 export default function Page() {
   const [splashDone, setSplashDone] = useState(false);
-  const [restored, setRestored] = useState(false); // 세션 복원 시도 완료 여부
+  const [restored, setRestored] = useState(false);
   const [tok, setTok] = useState<string | null>(null);
-  const [adminName, setAdminName] = useState("기사님");
+  const [role, setRole] = useState<Role | null>(null);
+  const [name, setName] = useState("");
 
-  /* 스플래시(최소 1.8초) + 기존 세션 복원 시도 */
+  /* 스플래시(최소 1.8초) + 기존 세션 복원 */
   useEffect(() => {
     let alive = true;
     const t = setTimeout(() => alive && setSplashDone(true), 1800);
@@ -28,20 +32,19 @@ export default function Page() {
             setToken(at);
             sb.realtime.setAuth(at);
             const me = await authMe();
-            if (me.profile?.role === "admin") {
-              if (alive) {
-                setTok(at);
-                setAdminName(me.profile.name ?? "기사님");
-              }
+            const r = me.profile?.role;
+            if ((r === "admin" || r === "resident") && alive) {
+              setTok(at);
+              setRole(r);
+              setName(me.profile?.name ?? (r === "admin" ? "기사님" : "주민"));
             } else {
-              // 기사님 권한이 아니면 복원하지 않음
               setToken(null);
               await sb.auth.signOut();
             }
           }
         }
       } catch {
-        /* 복원 실패 → 로그인 화면으로 */
+        /* 복원 실패 → 랜딩으로 */
       } finally {
         if (alive) setRestored(true);
       }
@@ -53,10 +56,11 @@ export default function Page() {
     };
   }, []);
 
-  function handleLoggedIn(token: string, name: string) {
-    // api 토큰/실시간 setAuth 는 LoginScreen 에서 이미 처리됨
+  function handlePicked(token: string, pickedName: string, pickedRole: string) {
+    // 토큰/실시간 setAuth 는 RoleLanding 에서 이미 처리됨
     setTok(token);
-    setAdminName(name);
+    setRole(pickedRole === "admin" ? "admin" : "resident");
+    setName(pickedName);
   }
 
   async function handleLogout() {
@@ -67,24 +71,28 @@ export default function Page() {
       /* 무시 */
     }
     setTok(null);
-    setAdminName("기사님");
+    setRole(null);
+    setName("");
   }
 
   const booting = !(splashDone && restored);
+  const isCitizen = !!tok && role === "resident";
 
   return (
     <ToastProvider>
-      <div className="phone-shell">
+      <div className={"phone-shell" + (isCitizen ? " cz" : "")}>
         <div className="notch" />
         {booting ? (
           <div className="splash">
             <div className="splash-icon">🐿️</div>
             <div className="splash-title">다람쥐택시</div>
           </div>
-        ) : tok ? (
-          <AdminShell token={tok} adminName={adminName} onLogout={handleLogout} />
+        ) : !tok || !role ? (
+          <RoleLanding onPicked={handlePicked} />
+        ) : role === "admin" ? (
+          <AdminShell token={tok} adminName={name || "기사님"} onLogout={handleLogout} />
         ) : (
-          <LoginScreen onLoggedIn={handleLoggedIn} />
+          <CitizenShell token={tok} residentName={name || "주민"} onLogout={handleLogout} />
         )}
       </div>
     </ToastProvider>
