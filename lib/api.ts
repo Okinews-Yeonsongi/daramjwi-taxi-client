@@ -204,3 +204,18 @@ export function cancelMyReservation(id: number) {
 export function getVillageStats() {
   return call<VillageStats>("/api/stats/village");
 }
+
+/* ───────── 카카오 로그인 / 온보딩 ───────── */
+
+/** 카카오 로그인 시작 URL. next 는 콜백 후 토큰을 받을 경로(우리 앱 주소). */
+export function kakaoStartUrl(next: string) {
+  return `${BASE}/api/auth/kakao/start?next=${encodeURIComponent(next)}`;
+}
+
+/** 온보딩 — 최초 카카오 가입자의 이름·전화번호 등록 (POST /api/profile). */
+export function onboardProfile(body: { name: string; phone: string }) {
+  return call<{ profile: unknown; created: boolean }>("/api/profile", {
+    method: "POST",
+    body,
+  });
+}

@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/Toast";
 import RoleLanding from "@/components/RoleLanding";
 import AdminShell from "@/components/admin/AdminShell";
 import CitizenShell from "@/components/citizen/CitizenShell";
+import CitizenOnboarding from "@/components/citizen/CitizenOnboarding";
 
 type Role = "admin" | "resident";
 
@@ -16,8 +17,9 @@ export default function Page() {
   const [tok, setTok] = useState<string | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [name, setName] = useState("");
+  const [onboarding, setOnboarding] = useState(false);
 
-  /* 스플래시(최소 1.8초) + 기존 세션 복원 */
+  /* 스플래시(최소 1.8초) + 카카오 콜백 처리 + 기존 세션 복원 */
   useEffect(() => {
     let alive = true;
     const t = setTimeout(() => alive && setSplashDone(true), 1800);
@@ -26,6 +28,17 @@ export default function Page() {
       try {
         const sb = getSupabase();
         if (sb) {
+          // 1) 카카오 콜백에서 돌아온 경우 — URL fragment 에 토큰이 있음
+          const frag = new URLSearchParams((window.location.hash || "").slice(1));
+          const fragAccess = frag.get("access_token");
+          const fragRefresh = frag.get("refresh_token");
+          const fragOnboarding = frag.get("needsOnboarding") === "1";
+          if (fragAccess && fragRefresh) {
+            await sb.auth.setSession({ access_token: fragAccess, refresh_token: fragRefresh });
+            window.history.replaceState(null, "", window.location.pathname);
+          }
+
+          // 2) 세션 확인 (방금 카카오로 설정했거나, 이전 자동 로그인)
           const { data } = await sb.auth.getSession();
           const at = data.session?.access_token;
           if (at) {
@@ -33,13 +46,19 @@ export default function Page() {
             sb.realtime.setAuth(at);
             const me = await authMe();
             const r = me.profile?.role;
-            if ((r === "admin" || r === "resident") && alive) {
-              setTok(at);
-              setRole(r);
-              setName(me.profile?.name ?? (r === "admin" ? "기사님" : "주민"));
-            } else {
-              setToken(null);
-              await sb.auth.signOut();
+            if (alive) {
+              if (r === "admin") {
+                setTok(at);
+                setRole("admin");
+                setName(me.profile?.name ?? "기사님");
+              } else {
+                // 카카오/주민 (역할 미지정도 주민으로 취급)
+                setTok(at);
+                setRole("resident");
+                setName(me.profile?.name ?? "주민");
+                // 전화번호가 없으면(최초 카카오 가입) 온보딩 필요
+                setOnboarding(fragOnboarding || !me.profile || !me.profile.phone);
+              }
             }
           }
         }
@@ -57,10 +76,11 @@ export default function Page() {
   }, []);
 
   function handlePicked(token: string, pickedName: string, pickedRole: string) {
-    // 토큰/실시간 setAuth 는 RoleLanding 에서 이미 처리됨
+    // 토큰/실시간 setAuth 는 RoleLanding 에서 이미 처리됨 (테스트 로그인)
     setTok(token);
     setRole(pickedRole === "admin" ? "admin" : "resident");
     setName(pickedName);
+    setOnboarding(false);
   }
 
   async function handleLogout() {
@@ -73,6 +93,7 @@ export default function Page() {
     setTok(null);
     setRole(null);
     setName("");
+    setOnboarding(false);
   }
 
   const booting = !(splashDone && restored);
@@ -91,6 +112,14 @@ export default function Page() {
           <RoleLanding onPicked={handlePicked} />
         ) : role === "admin" ? (
           <AdminShell token={tok} adminName={name || "기사님"} onLogout={handleLogout} />
+        ) : onboarding ? (
+          <CitizenOnboarding
+            initialName={name}
+            onDone={(nm) => {
+              setName(nm);
+              setOnboarding(false);
+            }}
+          />
         ) : (
           <CitizenShell token={tok} residentName={name || "주민"} onLogout={handleLogout} />
         )}

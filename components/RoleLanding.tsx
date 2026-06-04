@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import { devLogin, setToken, ApiCallError } from "@/lib/api";
+import { devLogin, setToken, ApiCallError, kakaoStartUrl } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
 
 const DEV_ENABLED = process.env.NEXT_PUBLIC_ENABLE_DEV_LOGIN === "true";
@@ -13,6 +13,12 @@ export default function RoleLanding({
 }) {
   const [loading, setLoading] = useState<"resident" | "admin" | null>(null);
   const [err, setErr] = useState("");
+
+  function loginWithKakao() {
+    // 콜백 후 토큰이 우리 앱(현재 호스트)으로 돌아오도록 protocol-relative 경로 사용
+    const next = "//" + window.location.host + window.location.pathname;
+    window.location.href = kakaoStartUrl(next);
+  }
 
   async function pick(role: "resident" | "admin") {
     setLoading(role);
@@ -97,11 +103,11 @@ export default function RoleLanding({
         <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
       </div>
 
-      <button disabled style={btnKakao} title="카카오는 사업자등록·비즈앱 전환 후 활성화">
+      <button style={btnKakao} onClick={loginWithKakao}>
         💬 카카오로 시작하기
       </button>
       <div style={{ marginTop: 16, fontSize: "clamp(12px,3vw,14px)", color: "var(--text-hint)" }}>
-        카카오는 사업자등록·비즈앱 전환 후 활성화
+        카카오 계정으로 간편하게 시작해요
       </div>
     </div>
   );
@@ -133,9 +139,7 @@ const btnOutline: CSSProperties = {
 const btnKakao: CSSProperties = {
   ...btnBase,
   border: "none",
-  background: "#F9E000",
+  background: "#FEE500",
   color: "#3C1E1E",
-  opacity: 0.65,
-  cursor: "default",
   marginBottom: 0,
 };
