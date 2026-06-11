@@ -219,3 +219,26 @@ export function onboardProfile(body: { name: string; phone: string }) {
     body,
   });
 }
+
+/* ───────── 웹 푸시 ───────── */
+
+/** 구독 시 사용할 VAPID 공개키 (로그인 불필요). */
+export function getPushPublicKey() {
+  return call<{ publicKey: string }>("/api/push/public-key");
+}
+
+/** PushSubscription 을 서버에 저장 (브라우저당 1개, endpoint 기준 덮어쓰기). */
+export function savePushSubscription(body: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  user_agent?: string;
+}) {
+  return call<{ ok: boolean }>("/api/push/subscribe", { method: "POST", body });
+}
+
+/** 구독 해지 (로그아웃 시). */
+export function deletePushSubscription(endpoint: string) {
+  return call<{ ok: boolean }>(`/api/push/subscribe?endpoint=${encodeURIComponent(endpoint)}`, {
+    method: "DELETE",
+  });
+}

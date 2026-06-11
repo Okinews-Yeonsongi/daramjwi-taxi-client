@@ -2,6 +2,7 @@
 
 import { fmtDateLong, todayStr } from "@/lib/format";
 import { useCitizen } from "./ctx";
+import PushButton from "@/components/PushButton";
 
 const MENU: { screen: "book" | "today" | "village" | "my"; icon: string; bg: string; label: string; sub: string }[] = [
   { screen: "book", icon: "🚗", bg: "var(--primary-light)", label: "탑승 신청하기", sub: "날짜·출발지·도착지·시간·인원 선택" },
@@ -26,6 +27,9 @@ export default function CitizenHome() {
         <div className="home-notice">
           <div style={{ fontSize: 22 }}>📢</div>
           <div className="home-notice-text">오전 9시 ~ 오후 6시 정상 운행</div>
+        </div>
+        <div style={{ marginTop: 12 }}>
+          <PushButton />
         </div>
       </div>
       <div className="scroll-content">

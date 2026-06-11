@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { setToken, authMe } from "@/lib/api";
 import { getSupabase } from "@/lib/supabase";
+import { enablePush, disablePush } from "@/lib/push";
 import { ToastProvider } from "@/components/Toast";
 import RoleLanding from "@/components/RoleLanding";
 import AdminShell from "@/components/admin/AdminShell";
@@ -75,6 +76,13 @@ export default function Page() {
     };
   }, []);
 
+  /* 로그인 후: 이미 알림을 허용한 기기면 조용히 재구독 (권한 요청은 '알림 켜기' 버튼에서) */
+  useEffect(() => {
+    if (tok && role && !onboarding) {
+      enablePush({ ask: false });
+    }
+  }, [tok, role, onboarding]);
+
   function handlePicked(token: string, pickedName: string, pickedRole: string) {
     // 토큰/실시간 setAuth 는 RoleLanding 에서 이미 처리됨 (테스트 로그인)
     setTok(token);
@@ -84,6 +92,11 @@ export default function Page() {
   }
 
   async function handleLogout() {
+    try {
+      await disablePush(); // 토큰 유효할 때 서버 구독 삭제
+    } catch {
+      /* 무시 */
+    }
     setToken(null);
     try {
       await getSupabase()?.auth.signOut();

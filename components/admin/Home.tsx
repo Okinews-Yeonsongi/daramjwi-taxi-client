@@ -5,6 +5,7 @@ import { getDashboard, ApiCallError } from "@/lib/api";
 import type { AdminDashboard } from "@/lib/types";
 import { fmtDateLong, todayStr } from "@/lib/format";
 import { useAdmin } from "./ctx";
+import PushButton from "@/components/PushButton";
 
 export default function Home() {
   const { goPage, tick, adminName, onLogout } = useAdmin();
@@ -51,6 +52,10 @@ export default function Home() {
           <button className="cta" onClick={() => goPage("manual")}>
             📞 전화 신청 바로가기 ➔
           </button>
+
+          <div style={{ marginBottom: 14 }}>
+            <PushButton />
+          </div>
 
           {err && <div className="login-err" style={{ marginBottom: 12 }}>{err}</div>}
 
