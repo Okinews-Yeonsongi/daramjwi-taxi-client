@@ -136,6 +136,14 @@ export function mergeReservations(reservationIds: number[], newHour: number, new
   });
 }
 
+/** 대기/확정 건 연락처 수정 (자유 형식, 끝 4자리 이상). */
+export function editReservationPhone(id: number, phone: string) {
+  return call<{ ok: boolean; phone: string }>(`/api/admin/reservations/${id}/phone`, {
+    method: "PATCH",
+    body: { phone },
+  });
+}
+
 /** 전화 신청 (비회원 대리 접수) */
 export function createPhoneReservation(body: {
   name: string;

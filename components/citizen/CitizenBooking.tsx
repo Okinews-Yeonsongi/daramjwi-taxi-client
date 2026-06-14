@@ -135,7 +135,7 @@ export default function CitizenBooking() {
     }
   }
 
-  const dates = Array.from({ length: 7 }, (_, i) => {
+  const dates = Array.from({ length: 3 }, (_, i) => {
     const d = kstDate(i);
     return { iso: ymd(d), d, isToday: i === 0 };
   });

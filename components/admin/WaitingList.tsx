@@ -6,6 +6,7 @@ import {
   confirmReservation,
   cancelReservation,
   mergeReservations,
+  editReservationPhone,
   ApiCallError,
 } from "@/lib/api";
 import type { AdminReservation, AdminTab, ReservationStatus } from "@/lib/types";
@@ -47,6 +48,10 @@ export default function WaitingList() {
   const [cancelReason, setCancelReason] = useState("차량 사정");
   const [mergeOpen, setMergeOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  // 연락처 수정
+  const [phoneTarget, setPhoneTarget] = useState<AdminReservation | null>(null);
+  const [phoneVal, setPhoneVal] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -121,6 +126,31 @@ export default function WaitingList() {
     }
   }
 
+  async function doEditPhone() {
+    if (!phoneTarget) return;
+    const digits = phoneVal.replace(/\D/g, "");
+    if (digits.length < 4) {
+      toast("전화번호 끝 4자리 이상 입력해 주세요");
+      return;
+    }
+    setBusy(true);
+    try {
+      await editReservationPhone(phoneTarget.id, phoneVal.trim());
+      toast("연락처를 수정했어요");
+      setPhoneTarget(null);
+      bump();
+    } catch (e) {
+      toast(e instanceof ApiCallError ? e.message : "연락처 수정 실패");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function openEditPhone(r: AdminReservation) {
+    setPhoneTarget(r);
+    setPhoneVal(r.resident.phone ?? "");
+  }
+
   return (
     <div className="pg">
       <div className="sub-ph-plain">
@@ -187,6 +217,7 @@ export default function WaitingList() {
               onClick={() => onItemClick(r)}
               onConfirm={() => setConfirmTarget(r)}
               onCancel={() => { setCancelTarget(r); setCancelReason("차량 사정"); }}
+              onEditPhone={() => openEditPhone(r)}
             />
           ))
         )}
@@ -242,6 +273,32 @@ export default function WaitingList() {
         </div>
       </Sheet>
 
+      {/* 연락처 수정 */}
+      <Sheet open={!!phoneTarget} onClose={busy ? () => {} : () => setPhoneTarget(null)}>
+        <div className="mtit">연락처 수정</div>
+        <div className="msub2">
+          {phoneTarget ? `${phoneTarget.resident.name ?? ""} 님 · ${fmtDate(phoneTarget.reservation_date)} ${phoneTarget ? timeLabelOf(phoneTarget) : ""}` : ""}
+        </div>
+        <label className="lbl-big" style={{ margin: "4px 0 8px" }}>전화번호</label>
+        <input
+          className="fi"
+          type="tel"
+          inputMode="numeric"
+          value={phoneVal}
+          onChange={(e) => setPhoneVal(e.target.value.replace(/\D/g, "").slice(0, 11))}
+          placeholder="전화번호 (끝 4자리만 입력해도 돼요)"
+          disabled={busy}
+        />
+        <div className="mft">
+          <button className="btn bo2" style={{ flex: 1, padding: 13 }} onClick={() => setPhoneTarget(null)} disabled={busy}>
+            닫기
+          </button>
+          <button className="btn bg2" style={{ flex: 1, padding: 13 }} onClick={doEditPhone} disabled={busy}>
+            {busy ? <span className="inline-spin" /> : "저장"}
+          </button>
+        </div>
+      </Sheet>
+
       {/* 합치기 */}
       <MergeSheet
         open={mergeOpen}
@@ -277,6 +334,7 @@ function WaitItem({
   onClick,
   onConfirm,
   onCancel,
+  onEditPhone,
 }: {
   r: AdminReservation;
   tab: AdminTab;
@@ -285,6 +343,7 @@ function WaitItem({
   onClick: () => void;
   onConfirm: () => void;
   onCancel: () => void;
+  onEditPhone: () => void;
 }) {
   const st = r.effective_status;
   return (
@@ -306,6 +365,7 @@ function WaitItem({
             </div>
             <div className="wi-bottom">
               {r.resident.is_guest && <span className="wi-src">📞 전화</span>}
+              {r.resident.phone && <span className="wi-src">📱 {r.resident.phone}</span>}
               <span className="wi-usage">이달 {r.monthly_confirmed}회</span>
             </div>
             {tab === "waiting" && !editMode && (
@@ -322,6 +382,12 @@ function WaitItem({
                 >
                   취소
                 </button>
+                <button
+                  className="wi-btn"
+                  onClick={(e) => { e.stopPropagation(); onEditPhone(); }}
+                >
+                  ✏️ 번호
+                </button>
               </div>
             )}
             {tab === "confirmed" && (
@@ -331,6 +397,12 @@ function WaitItem({
                   onClick={(e) => { e.stopPropagation(); onCancel(); }}
                 >
                   취소
+                </button>
+                <button
+                  className="wi-btn"
+                  onClick={(e) => { e.stopPropagation(); onEditPhone(); }}
+                >
+                  ✏️ 번호
                 </button>
               </div>
             )}

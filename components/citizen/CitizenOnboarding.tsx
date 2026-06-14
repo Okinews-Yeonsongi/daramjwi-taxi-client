@@ -15,9 +15,11 @@ const labelStyle: CSSProperties = {
 export default function CitizenOnboarding({
   initialName,
   onDone,
+  onSkip,
 }: {
   initialName: string;
   onDone: (name: string) => void;
+  onSkip: () => void;
 }) {
   const toast = useToast();
   const [name, setName] = useState(initialName);
@@ -41,7 +43,10 @@ export default function CitizenOnboarding({
   return (
     <div className="screen active">
       <div className="top-bar">
-        <div className="app-name">🐿️ 다람쥐 택시</div>
+        <div className="app-name" style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          <img src="/character.png" alt="" style={{ height: "1.5em", width: "auto" }} />
+          다람쥐 택시
+        </div>
         <div className="top-bar-sub">환영해요! 처음이시네요 😊</div>
       </div>
       <div className="scroll-content">
@@ -70,7 +75,7 @@ export default function CitizenOnboarding({
           <div className="ph-hint">📱 휴대폰 번호만 등록돼요</div>
         </div>
       </div>
-      <div className="action-bar-single">
+      <div className="action-bar-single" style={{ flexDirection: "column", gap: 10 }}>
         <button
           className="btn-primary"
           style={{ width: "100%" }}
@@ -78,6 +83,23 @@ export default function CitizenOnboarding({
           onClick={submit}
         >
           {busy ? "저장 중…" : "시작하기 →"}
+        </button>
+        <button
+          onClick={onSkip}
+          disabled={busy}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--text-muted)",
+            fontWeight: 700,
+            fontSize: "clamp(13px,3.6vw,15px)",
+            textDecoration: "underline",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            padding: 4,
+          }}
+        >
+          나중에 입력하기
         </button>
       </div>
     </div>

@@ -46,7 +46,16 @@ export default function RoleLanding({
         textAlign: "center",
       }}
     >
-      <div style={{ fontSize: "clamp(72px,22vw,104px)", lineHeight: 1 }}>🐿️</div>
+      <img
+        src="/character.png"
+        alt="다람쥐 택시"
+        style={{
+          width: "clamp(132px,36vw,168px)",
+          height: "auto",
+          display: "block",
+          filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.12))",
+        }}
+      />
       <div style={{ fontSize: "clamp(30px,9vw,42px)", fontWeight: 900, color: "var(--text)", marginTop: 18 }}>
         다람쥐 택시
       </div>

@@ -37,7 +37,9 @@ export default function Home() {
     <div className="pg">
       <div className="home-header">
         <div className="home-header-top">
-          <div className="home-logo-box">🐿️</div>
+          <div className="home-logo-box">
+            <img src="/character.png" alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          </div>
           <span className="home-app-name">다람쥐택시</span>
           <button className="home-logout" onClick={onLogout}>
             로그아웃

@@ -17,7 +17,10 @@ export default function CitizenHome() {
     <div className="screen active">
       <div className="top-bar">
         <div style={{ display: "flex", alignItems: "center" }}>
-          <div className="app-name">🐿️ 다람쥐 택시</div>
+          <div className="app-name" style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <img src="/character.png" alt="" style={{ height: "1.5em", width: "auto" }} />
+            다람쥐 택시
+          </div>
           <button className="home-logout" onClick={onLogout}>
             로그아웃
           </button>

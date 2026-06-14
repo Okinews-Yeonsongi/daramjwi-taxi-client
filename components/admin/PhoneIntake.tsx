@@ -101,7 +101,8 @@ export default function PhoneIntake() {
   const arr = (locs ?? []).find((l) => l.id === arrId) ?? null;
 
   /* 전화번호 파생값 (백엔드 검증과 동일: 휴대폰 01x 만 허용) */
-  const phoneValid = /^01[016789]\d{7,8}$/.test(phone);
+  /* 전화번호: 끝 4자리 이상만 입력하면 OK (백엔드가 자유 형식 허용). 숫자만 보관. */
+  const phoneValid = phone.replace(/\D/g, "").length >= 4;
 
   /* 단계별 '다음' 활성 조건 (주민 화면과 동일하게 버튼으로 막음) */
   const canAdvance =
@@ -116,7 +117,7 @@ export default function PhoneIntake() {
     if (n > step) {
       if (step === 1) {
         if (!name.trim()) return toast("이름을 입력해주세요");
-        if (!phoneValid) return toast("휴대폰 번호를 정확히 입력해주세요");
+        if (!phoneValid) return toast("전화번호 끝 4자리 이상 입력해주세요");
       }
       if (step === 2 && !date) return toast("날짜를 선택해주세요");
       if (step === 3 && (!depCat || !depId)) return toast("방향과 출발지를 선택해주세요");
@@ -158,7 +159,7 @@ export default function PhoneIntake() {
   }
 
   /* 7일치 날짜 */
-  const dates = Array.from({ length: 7 }, (_, i) => {
+  const dates = Array.from({ length: 3 }, (_, i) => {
     const d = kstDate(i);
     return { iso: ymd(d), d, isToday: i === 0 };
   });
@@ -202,13 +203,13 @@ export default function PhoneIntake() {
               />
               <input
                 className="fi"
-                placeholder="휴대폰 번호 입력 (예: 01012345678)"
+                placeholder="전화번호 (끝 4자리만 입력해도 돼요)"
                 type="tel"
                 inputMode="numeric"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 11))}
               />
-              <div className="ph-hint">📱 휴대폰 번호만 접수돼요 (집전화·02 등은 아직 안 돼요)</div>
+              <div className="ph-hint">📱 전화로 들은 번호 그대로 — 일부(끝 4자리 이상)만 입력해도 접수돼요</div>
             </div>
           )}
 

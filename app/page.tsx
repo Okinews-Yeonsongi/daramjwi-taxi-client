@@ -76,11 +76,27 @@ export default function Page() {
     };
   }, []);
 
-  /* 로그인 후: 이미 알림을 허용한 기기면 조용히 재구독 (권한 요청은 '알림 켜기' 버튼에서) */
+  /* 로그인 후: 최초 1회는 자동으로 알림 권한을 물어보고, 이후엔 조용히 재구독.
+     (닫았거나 거부했으면 홈의 '🔔 알림 켜기' 버튼으로 다시 켤 수 있어요.
+      아이폰 Safari는 자동 팝업이 막혀 있어 버튼으로만 됩니다.) */
   useEffect(() => {
-    if (tok && role && !onboarding) {
-      enablePush({ ask: false });
+    if (!(tok && role && !onboarding)) return;
+    const KEY = "daramjwi-push-auto-asked";
+    let asked = false;
+    try {
+      asked = localStorage.getItem(KEY) === "1";
+    } catch {
+      /* 무시 */
     }
+    const id = setTimeout(() => {
+      enablePush({ ask: !asked });
+      try {
+        localStorage.setItem(KEY, "1");
+      } catch {
+        /* 무시 */
+      }
+    }, 1200);
+    return () => clearTimeout(id);
   }, [tok, role, onboarding]);
 
   function handlePicked(token: string, pickedName: string, pickedRole: string) {
@@ -118,7 +134,9 @@ export default function Page() {
         <div className="notch" />
         {booting ? (
           <div className="splash">
-            <div className="splash-icon">🐿️</div>
+            <div className="splash-icon">
+              <img src="/character.png" alt="" style={{ width: "76%", height: "76%", objectFit: "contain" }} />
+            </div>
             <div className="splash-title">다람쥐택시</div>
           </div>
         ) : !tok || !role ? (
@@ -132,6 +150,7 @@ export default function Page() {
               setName(nm);
               setOnboarding(false);
             }}
+            onSkip={() => setOnboarding(false)}
           />
         ) : (
           <CitizenShell token={tok} residentName={name || "주민"} onLogout={handleLogout} />
